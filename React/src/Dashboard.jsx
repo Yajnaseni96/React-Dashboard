@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 
 const Dashboard = () => {
     const [employee, setEmployee] = useState([]);
@@ -9,15 +9,35 @@ const Dashboard = () => {
     const [sorting, setSorting] = useState({column: ""});
     const [currentPage, setCurrentPage] = useState(1);
     let itemsPerPage = 10;
-    
-    useEffect(() => {
-        fetchEmployeeDetails();
-    }, []);
+    let ref = useRef(0);
 
-    const fetchEmployeeDetails = async() => {
+    useEffect(() => {
+        //debounce
+        let timerId;
+
+        timerId = setTimeout(() => {
+            fetchEmployeeDetails();
+        }, 500);
+        
+        return () => clearTimeout(timerId);
+    }, [search]);
+
+    // useEffect(() => {
+    //     let elapsedTime = Date.now()-ref.current;
+    //     let remainingTime = Math.max(0, 500 - elapsedTime);
+
+    //     let timerId = setTimeout(() => {
+    //         ref.current = Date.now();
+    //         fetchEmployeeDetails();
+    //     }, remainingTime);
+
+    //     return () => clearTimeout(timerId);
+    // })
+
+    const fetchEmployeeDetails = async () => {
         try {
             setLoading(true);
-            const res = await fetch("https://dummyjson.com/users/search");
+            const res = await fetch(`https://dummyjson.com/users/search?q=${search}`);
             const data = await res.json();
             setEmployee(data.users);
             setLoading(false);
@@ -28,13 +48,13 @@ const Dashboard = () => {
     const searchValue = search.toLowerCase();
 
     const filteredUsers = employee.filter(user => {
-        const matchedUsers = user.firstName.toLowerCase().includes(searchValue) || 
-            user.lastName.toLowerCase().includes(searchValue) ||
-            user.email.toLowerCase().includes(searchValue);
+        // const matchedUsers = user.firstName.toLowerCase().includes(searchValue) || 
+        //     user.lastName.toLowerCase().includes(searchValue) ||
+        //     user.email.toLowerCase().includes(searchValue);
 
         const matchingDepartment = (dept === "" || user.company.department === dept);   
         
-        return matchedUsers && matchingDepartment;
+        return  matchingDepartment;
     }).sort((a, b) => {
         if(sorting.column === "firstName" || sorting.column === "lastName" || sorting.column === "department" || sorting.column === "role") {
             return a[sorting.column]?.localeCompare(b[sorting.column]);

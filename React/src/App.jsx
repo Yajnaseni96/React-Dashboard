@@ -7,7 +7,7 @@ function App() {
 
   return (
     <>
-      <Todo />
+      <Dashboard />
     </>
   )
 }
